@@ -45,7 +45,8 @@ nowhere else.
    key. Dump-to-disk of traffic is NOT supported in Prompt Cult proxies
    (upstream's `--dump-dir` was deliberately not ported).
 7. **Environment-first key source.** The key comes from the process
-   environment (`SecretSource::Env`), falling back to stdin. Whether a
+   environment (the proxy's `read_auth_header(env_var, bin)` checks the
+   service's `api_key_env_var` first), falling back to stdin. Whether a
    `.env` file is loaded into the environment is a deployment concern
    outside the core: the core only ever observes "key present: true|false".
 8. **Loopback-only bind.** The proxy binds `127.0.0.1` only; it is never

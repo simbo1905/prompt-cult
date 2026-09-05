@@ -433,6 +433,38 @@ fn relay_non_streaming_translates_and_injects_key() {
 }
 
 #[test]
+fn relay_applies_explicit_upstream_model_mapping() {
+    let upstream = MockUpstream::start(vec![
+        json_response(200, models_catalog()),
+        json_response(200, chat_completion()),
+    ]);
+    let dir = tempfile::tempdir().expect("tempdir");
+    write_config(
+        dir.path(),
+        r#"{ "model_overrides": { "zai-glm-5-2": { "upstream_model_id": "glm-5-2-alias" } } }"#,
+    );
+    let port = start_proxy(dir.path(), upstream.base_url());
+
+    let resp = client()
+        .post(proxy_url(port, "/v1/responses"))
+        .json(&json!({
+            "model": "zai-glm-5-2",
+            "input": [{"type": "message", "role": "user", "content": "Hello"}],
+        }))
+        .send()
+        .expect("relay request");
+    assert_eq!(resp.status(), 200);
+    let body: Value = resp.json().expect("response body");
+    // Client-visible identity stays the requested model, never the alias.
+    assert_eq!(body["model"], json!("zai-glm-5-2"));
+
+    let recorded = upstream.recorded();
+    let chat = &recorded[1];
+    let sent: Value = serde_json::from_str(&chat.body).expect("upstream body is JSON");
+    assert_eq!(sent["model"], json!("glm-5-2-alias"));
+}
+
+#[test]
 fn relay_streaming_translates_sse() {
     let upstream = MockUpstream::start(vec![
         json_response(200, models_catalog()),

@@ -419,7 +419,19 @@ impl MistralProxy {
             }
         }
 
-        let mistral_body = translate_request::oai_to_mistral(&body);
+        let mut mistral_body = translate_request::oai_to_mistral(&body);
+        // Explicit upstream model mapping (spec §6): when the operator
+        // config sets `upstream_model_id` for this model, forward that ID
+        // upstream. The client-visible model stays the requested ID,
+        // verbatim; the mapping is config, never inference.
+        if let Some(upstream_id) = self
+            .config
+            .model_overrides
+            .get(&model)
+            .and_then(|ovr| ovr.upstream_model_id.clone())
+        {
+            mistral_body["model"] = serde_json::Value::String(upstream_id);
+        }
         let upstream_url = format!("{}/chat/completions", self.upstream_base);
         let fwd_headers = build_upstream_headers(self.auth_header, &self.host_header, &req);
 
@@ -750,16 +762,24 @@ pub fn run_main(args: Args) -> Result<()> {
 }
 
 /// Resolve the proxy config directory (spec §7): CLI flag >
-/// `PC_PROXY_CONFIG_DIR` > `~/.prompt-cult`.
+/// `PC_PROXY_CONFIG_DIR` > `~/.prompt-cult`. The result is absolute so the
+/// startup config-found log line shows an absolute path.
 fn resolve_config_dir(cli_flag: Option<PathBuf>) -> Result<PathBuf> {
     if let Some(dir) = cli_flag {
-        return Ok(dir);
+        return Ok(absolutize(dir));
     }
     if let Ok(dir) = std::env::var("PC_PROXY_CONFIG_DIR") {
-        return Ok(PathBuf::from(dir));
+        return Ok(absolutize(PathBuf::from(dir)));
     }
     let home = std::env::var("HOME").context("resolving ~/.prompt-cult: HOME is not set")?;
-    Ok(Path::new(&home).join(".prompt-cult"))
+    Ok(absolutize(Path::new(&home).join(".prompt-cult")))
+}
+
+fn absolutize(path: PathBuf) -> PathBuf {
+    match std::path::absolute(&path) {
+        Ok(absolute) => absolute,
+        Err(_) => path,
+    }
 }
 
 /// The accept loop: each request is handled on its own thread. A graceful

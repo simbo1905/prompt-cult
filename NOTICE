@@ -1,0 +1,11 @@
+NOTICE
+
+This product includes software developed as part of Prompt Cult,
+https://github.com/simbo1905/prompt-cult
+
+Portions of this software are derived from OpenAI's "codex" repository
+(https://github.com/openai/codex), used under the Apache License, Version 2.0.
+In particular, the memory-hardened API-key handling and process-hardening
+code in `crates/proxy-core` descends from upstream's
+`codex-rs/responses-api-proxy` and `codex-rs/process-hardening` crates.
+See `docs/hardening.md` for the full lineage audit.

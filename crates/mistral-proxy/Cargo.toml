@@ -1,0 +1,11 @@
+[package]
+name = "prompt-cult-mistral-proxy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+prompt-cult-proxy-core = { path = "../proxy-core" }

@@ -39,6 +39,22 @@ per-service proxies (Mistral shipped first; OpenCode Go/Zen planned) are
 reference implementations of the spec. See `docs/proxy-spec.md` §12 for the
 advisory on staying aligned with OpenAI's upstream proxy code.
 
+## Running the reference proxy
+
+```shell
+export MISTRAL_API_KEY=...          # or pipe the key to stdin
+cargo run -p prompt-cult-mistral-proxy -- --port 8090
+```
+
+The proxy binds loopback only, reads its key once (environment first,
+low-level `read(2)` stdin fallback), and serves the spec's endpoint table:
+`GET /service`, `GET /v1/models` (codex picker shape), `POST /v1/responses`
+(streaming and non-streaming), `GET /health`, and `POST /shutdown`.
+Optional per-service config lives at `$PC_PROXY_CONFIG_DIR/mistral-ai.jsonc`
+(or `~/.prompt-cult/mistral-ai.jsonc`) — see
+[`examples/mistral-ai.jsonc`](examples/mistral-ai.jsonc); a missing file
+means compiled-in defaults, a malformed file is a hard startup error.
+
 ## Development
 
 ```shell

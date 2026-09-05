@@ -1,0 +1,34 @@
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "zai-glm-5-2",
+      "object": "model",
+      "capabilities": {
+        "completion_chat": true,
+        "completion_fim": false,
+        "function_calling": true,
+        "fine_tuning": false,
+        "vision": false
+      },
+      "max_context_length": 131072
+    },
+    {
+      "id": "mistral-medium-latest",
+      "object": "model",
+      "capabilities": {
+        "completion_chat": true,
+        "function_calling": true
+      }
+    },
+    {
+      "id": "mistral-embed",
+      "object": "model",
+      "capabilities": {
+        "completion_chat": false,
+        "completion_fim": false
+      },
+      "max_context_length": 8192
+    }
+  ]
+}

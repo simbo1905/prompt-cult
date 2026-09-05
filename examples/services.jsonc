@@ -1,0 +1,70 @@
+// Illustration of the OpenCode one-key-two-endpoints deployment shape
+// (see proxy-spec.md §3). OpenCode AI is one vendor with two endpoints,
+// go and zen, sharing one license key whose entitlement may cover either,
+// both, or neither. Model as two services with independent enablement.
+// A service whose key var resolves empty is simply not enabled.
+//
+// This file is documentation of the service model, NOT a loadable proxy
+// config: per-service proxy config files are <service-id>.jsonc (see
+// proxy-config.jtd.json and proxy-mistral-ai.jsonc).
+{
+  "services": [
+    {
+      "id": "opencode-go",
+      "kind": "inference",
+      "vendor": "OpenCode AI",
+      "endpoint": "go",
+      "api_key_env_var": "OPENCODE_API_KEY",
+      "enabled": true,
+      "upstream_base_url": "https://opencode.ai/zen/go/v1",
+      "models": [
+        {
+          "id": "go-claude-sonnet-4-5",
+          "service_id": "opencode-go",
+          "enabled": true,
+          "api_key_env_var": "OPENCODE_API_KEY",
+          "upstream_model_id": "claude-sonnet-4-5",
+          "context_window": 200000,
+          "supported_reasoning_efforts": ["low", "medium", "high"]
+        }
+      ]
+    },
+    {
+      "id": "opencode-zen",
+      "kind": "inference",
+      "vendor": "OpenCode AI",
+      "endpoint": "zen",
+      "api_key_env_var": "OPENCODE_API_KEY",
+      "enabled": true,
+      "upstream_base_url": "https://opencode.ai/zen/v1",
+      "models": [
+        {
+          "id": "zen-gpt-5-mini",
+          "service_id": "opencode-zen",
+          "enabled": true,
+          "api_key_env_var": "OPENCODE_API_KEY",
+          "upstream_model_id": "gpt-5-mini",
+          "context_window": 400000
+        }
+      ]
+    },
+    {
+      "id": "mistral-ai",
+      "kind": "inference",
+      "vendor": "Mistral AI",
+      "endpoint": "mistral",
+      "api_key_env_var": "MISTRAL_API_KEY",
+      "enabled": true,
+      "upstream_base_url": "https://api.mistral.ai/v1",
+      "models": [
+        {
+          "id": "mistral-large-latest",
+          "service_id": "mistral-ai",
+          "enabled": true,
+          "api_key_env_var": "MISTRAL_API_KEY",
+          "context_window": 128000
+        }
+      ]
+    }
+  ]
+}

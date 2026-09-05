@@ -1,0 +1,39 @@
+{
+  "description": "Structured error body returned by all proxy endpoints on failure. NEVER contains API key material, request bodies, or response bodies.",
+  "definitions": {
+    "error_code": {
+      "enum": [
+        "model_not_enabled",
+        "service_disabled",
+        "forbidden",
+        "not_found",
+        "bad_request",
+        "upstream_error",
+        "internal"
+      ]
+    }
+  },
+  "properties": {
+    "error": {
+      "properties": {
+        "code": { "ref": "error_code" },
+        "message": { "type": "string" }
+      },
+      "optionalProperties": {
+        "model": { "type": "string" },
+        "service_id": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "metadata": {
+    "model_not_enabled": "HTTP 403; the request named a model that is not allowed AND enabled. The lockdown refusal - a misbehaving harness cannot escalate to non-approved models.",
+    "service_disabled": "HTTP 403; the request named a service whose key is absent from the environment or that the operator disabled.",
+    "forbidden": "HTTP 403; the request did not match any permitted route/method.",
+    "not_found": "HTTP 404; unknown path.",
+    "bad_request": "HTTP 400; unparseable body.",
+    "upstream_error": "HTTP 502; the upstream provider returned an error. The message summarises the upstream status ONLY; upstream bodies are not relayed.",
+    "internal": "HTTP 500; unexpected proxy failure.",
+    "message_rule": "messages are for operators reading logs/terminals, are safe to show a harness, and MUST be treated as untrusted input by the harness."
+  }
+}

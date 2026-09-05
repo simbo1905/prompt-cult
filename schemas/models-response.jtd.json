@@ -1,0 +1,82 @@
+{
+  "description": "Response body of GET /v1/models: the codex-compatible ModelsResponse shape. This is the picker-compatibility contract; harnesses wanting the full service/model document use GET /service instead. Field names and semantics mirror OpenAI codex's ModelInfo wire format.",
+  "definitions": {
+    "reasoning_effort": { "enum": ["none", "minimal", "low", "medium", "high", "xhigh"] },
+    "reasoning_effort_preset": {
+      "properties": {
+        "effort": { "ref": "reasoning_effort" },
+        "description": { "type": "string" }
+      }
+    },
+    "model_info_upgrade": {
+      "properties": {
+        "model": { "type": "string" },
+        "migration_markdown": { "type": "string" }
+      }
+    },
+    "availability_nux": {
+      "properties": { "message": { "type": "string" } }
+    },
+    "model_messages": {
+      "optionalProperties": {
+        "instructions_template": { "type": "string" },
+        "instructions_variables": {
+          "optionalProperties": {
+            "personality_default": { "type": "string" },
+            "personality_friendly": { "type": "string" },
+            "personality_pragmatic": { "type": "string" }
+          }
+        }
+      }
+    },
+    "truncation_policy": {
+      "properties": {
+        "mode": { "enum": ["bytes", "tokens"] },
+        "limit": { "type": "int64" }
+      }
+    },
+    "model_info": {
+      "properties": {
+        "slug": { "type": "string" },
+        "display_name": { "type": "string" },
+        "description": { "metadata": { "nullable": "serializes as null when absent (codex Option without skip)" } },
+        "supported_reasoning_levels": { "elements": { "ref": "reasoning_effort_preset" } },
+        "shell_type": { "enum": ["default", "local", "unified_exec", "disabled", "shell_command"] },
+        "visibility": { "enum": ["list", "hide", "none"] },
+        "supported_in_api": { "type": "boolean" },
+        "priority": { "type": "int32" },
+        "additional_speed_tiers": { "elements": { "type": "string" } },
+        "availability_nux": { "metadata": { "nullable": "may be null" } },
+        "upgrade": { "metadata": { "nullable": "may be null" } },
+        "base_instructions": { "type": "string" },
+        "supports_reasoning_summaries": { "type": "boolean" },
+        "default_reasoning_summary": { "enum": ["auto", "concise", "detailed", "none"] },
+        "support_verbosity": { "type": "boolean" },
+        "default_verbosity": { "metadata": { "nullable": "may be null" } },
+        "apply_patch_tool_type": { "metadata": { "nullable": "may be null" } },
+        "web_search_tool_type": { "enum": ["text", "text_and_image"] },
+        "truncation_policy": { "ref": "truncation_policy" },
+        "supports_parallel_tool_calls": { "type": "boolean" },
+        "supports_image_detail_original": { "type": "boolean" },
+        "effective_context_window_percent": { "type": "int32" },
+        "experimental_supported_tools": { "elements": { "type": "string" } },
+        "input_modalities": { "elements": { "enum": ["text", "image"] } },
+        "supports_search_tool": { "type": "boolean" }
+      },
+      "optionalProperties": {
+        "default_reasoning_level": { "ref": "reasoning_effort" },
+        "model_messages": { "ref": "model_messages" },
+        "context_window": { "type": "int64" },
+        "auto_compact_token_limit": { "type": "int64" }
+      }
+    }
+  },
+  "properties": {
+    "models": { "elements": { "ref": "model_info" } }
+  },
+  "metadata": {
+    "nullable_fields": "description, availability_nux, upgrade, default_verbosity, apply_patch_tool_type serialize as JSON null (not omitted) when unset; RFC 8927 has no null type, so they are declared without a type here and annotated in metadata.",
+    "model_id_rule": "the slug is forwarded VERBATIM by the proxy when relaying; a proxy MUST NOT substitute, upgrade, or canonicalise it.",
+    "exclusions": "only models surviving the service's exclusion globs AND enabled=true appear here."
+  }
+}

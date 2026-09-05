@@ -1,0 +1,40 @@
+{
+  "description": "Shape of the per-service JSONC config file <service-id>.jsonc in the proxy config directory. All keys are optional; a missing file means compiled-in defaults. A present-but-malformed file (bad JSONC, unknown key, invalid glob) is a hard startup error. Comments and trailing commas are allowed.",
+  "definitions": {
+    "model_override": {
+      "optionalProperties": {
+        "base_instructions": { "type": "string" },
+        "base_instructions_file": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "context_window": { "type": "uint32" },
+        "max_output_tokens": { "type": "uint32" },
+        "supported_reasoning_efforts": { "elements": { "type": "string" } },
+        "preference": { "enum": ["pinned", "default", "hidden"] },
+        "upstream_model_id": { "type": "string" },
+        "cost_input_per_million_usd": { "type": "float64" },
+        "cost_output_per_million_usd": { "type": "float64" }
+      },
+      "additionalProperties": false,
+      "metadata": {
+        "base_instructions": "inline system instructions replacing the default agentic prompt for this model. Mutually exclusive with base_instructions_file; setting both is a hard error.",
+        "base_instructions_file": "absolute path to a UTF-8 file whose contents replace base_instructions (inlined at load). Mutually exclusive with base_instructions.",
+        "enabled": "per-model lockdown: false removes the model from discovery AND refuses requests naming it (403 model_not_enabled). Default true.",
+        "keys_naming_unknown_models": "ignored, so stale entries do not break discovery when a provider retires a model."
+      }
+    }
+  },
+  "optionalProperties": {
+    "upstream_base_url": { "type": "string" },
+    "enabled": { "type": "boolean" },
+    "model_exclude_globs": { "elements": { "type": "string" } },
+    "model_overrides": { "values": { "ref": "model_override" } },
+    "log_level": { "enum": ["normal", "verbose"] }
+  },
+  "additionalProperties": false,
+  "metadata": {
+    "upstream_base_url": "override the upstream API endpoint (CLI flags take precedence over this, which takes precedence over compiled-in defaults).",
+    "enabled": "service kill-switch: false disables the whole service even when the key is present. Default true; final enablement is this AND key-present.",
+    "model_exclude_globs": "glob patterns matched against upstream model IDs; matches are dropped from discovery. Empty list disables filtering. '*' matches any run of characters (including none); no '**'; a pattern without '*' is an exact match; matching is case-sensitive. Overriding the list replaces compiled-in defaults entirely.",
+    "log_level": "normal = startup banner, config line, discovery totals, upstream non-200s, fatal errors. verbose = additionally one line per relayed request (proxy id, per-process counter, requested model, upstream-reported model)."
+  }
+}

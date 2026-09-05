@@ -1,0 +1,34 @@
+// Optional per-service config for the Mistral reference proxy.
+// Copy to $PC_PROXY_CONFIG_DIR/proxy-mistral-ai.jsonc (or ~/.prompt-cult/).
+// Delete keys to use compiled-in defaults; a malformed file is a hard
+// startup error, never silently ignored.
+{
+  // "upstream_base_url": "https://api.mistral.ai/v1",
+
+  // Service kill-switch: false disables the service even when
+  // MISTRAL_API_KEY is present. Final enablement = this AND key present.
+  // "enabled": true,
+
+  // Glob patterns matched against upstream model IDs; matches are dropped
+  // from discovery. Overriding replaces defaults entirely.
+  "model_exclude_globs": [
+    "*-ocr-*",
+    "*-mini-*",
+    "magistral-*",
+    "ministral-*",
+    "voxtral-*",
+    "glm-5-2"
+  ],
+
+  // Per-model metadata overrides. Keys naming unknown models are ignored.
+  "model_overrides": {
+    // "zai-glm-5-2": {
+    //   "base_instructions": "You are zai-glm-5-2.",
+    //   "enabled": true,
+    //   "context_window": 131072
+    // }
+    // "locked-down-model": { "enabled": false }
+  }
+
+  // "log_level": "verbose"
+}

@@ -1,0 +1,25 @@
+{
+  "description": "An inference service: vendor + endpoint + key. Returned by GET /service and embedded in the service list. The id is the stable slug used in config file names and logs.",
+  "properties": {
+    "id": { "type": "string" },
+    "vendor": { "type": "string" },
+    "endpoint": { "type": "string" },
+    "api_key_env_var": { "type": "string" },
+    "enabled": { "type": "boolean" },
+    "kind": { "enum": ["inference"] }
+  },
+  "optionalProperties": {
+    "display_name": { "type": "string" },
+    "upstream_base_url": { "type": "string" },
+    "aliases": { "elements": { "type": "string" } }
+  },
+  "additionalProperties": true,
+  "metadata": {
+    "id": "stable slug, conventionally vendor-endpoint lowercased and hyphenated (opencode-go, opencode-zen, mistral-ai). Mono providers may expose an alias (anthropic for anthropic-anthropic) at the UI/CLI layer; the wire id never changes.",
+    "enabled": "derived at runtime: the service is enabled iff its api_key_env_var resolves to a non-empty value in the proxy environment AND the operator has not set enabled=false in the service config. Both conditions are AND-ed.",
+    "api_key_env_var": "the NAME of the environment variable, never its value.",
+    "kind": "reserved for future service types (e.g. mcp); every compliant proxy MUST expose at least one kind=inference service.",
+    "aliases": "alternative names other tools may use for this service; purely advisory.",
+    "models": "the embedded model list is defined by the composite service-list schema (see service-list.jtd.json), not here: RFC 8927 refs are same-document only."
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "description": "Response body of GET /service: the composite discovery document. Every compliant proxy serves at least one inference service. The service and model definitions here are canonical copies of service.jtd.json and model.jtd.json (RFC 8927 refs are same-document only); proxy-core's schema sync test asserts the copies stay identical.",
+  "definitions": {
+    "service": {
+      "properties": {
+        "id": { "type": "string" },
+        "vendor": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "api_key_env_var": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "kind": { "enum": ["inference"] }
+      },
+      "optionalProperties": {
+        "display_name": { "type": "string" },
+        "upstream_base_url": { "type": "string" },
+        "aliases": { "elements": { "type": "string" } },
+        "models": { "elements": { "ref": "model" } }
+      },
+      "additionalProperties": true
+    },
+    "model": {
+      "properties": {
+        "id": { "type": "string" },
+        "service_id": { "type": "string" },
+        "enabled": { "type": "boolean" },
+        "api_key_env_var": { "type": "string" }
+      },
+      "optionalProperties": {
+        "display_name": { "type": "string" },
+        "description": { "type": "string" },
+        "context_window": { "type": "uint32" },
+        "max_output_tokens": { "type": "uint32" },
+        "base_instructions": { "type": "string" },
+        "supported_reasoning_efforts": { "elements": { "type": "string" } },
+        "input_modalities": { "elements": { "enum": ["text", "image", "audio"] } },
+        "cost_input_per_million_usd": { "type": "float64" },
+        "cost_output_per_million_usd": { "type": "float64" },
+        "preference": { "enum": ["pinned", "default", "hidden"] },
+        "upstream_model_id": { "type": "string" },
+        "skills": { "elements": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "services": { "elements": { "ref": "service" } }
+  },
+  "metadata": {
+    "rules": [
+      "Only enabled services appear in the list; a service whose key is absent from the environment is omitted entirely (or listed with enabled=false in verbose operator mode - the choice is fixed per proxy version and documented).",
+      "Only enabled models appear in a service's models array; enabled=false models are never listed.",
+      "A harness reads NO provider configuration of its own: this endpoint (plus GET /v1/models for picker compatibility) is the only way a harness learns what it may use."
+    ]
+  }
+}

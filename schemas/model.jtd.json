@@ -1,0 +1,33 @@
+{
+  "description": "A complete model value object as served by a Prompt Cult proxy. Complete means: everything a harness needs to decide to use it, including which credential the proxy spends on its behalf. Disabled models are never listed or served; enabled=false appears here only in config-facing contexts (model overrides), never in discovery responses.",
+  "properties": {
+    "id": { "type": "string" },
+    "service_id": { "type": "string" },
+    "enabled": { "type": "boolean" },
+    "api_key_env_var": { "type": "string" }
+  },
+  "optionalProperties": {
+    "display_name": { "type": "string" },
+    "description": { "type": "string" },
+    "context_window": { "type": "uint32" },
+    "max_output_tokens": { "type": "uint32" },
+    "base_instructions": { "type": "string" },
+    "supported_reasoning_efforts": { "elements": { "type": "string" } },
+    "input_modalities": { "elements": { "enum": ["text", "image", "audio"] } },
+    "cost_input_per_million_usd": { "type": "float64" },
+    "cost_output_per_million_usd": { "type": "float64" },
+    "preference": { "enum": ["pinned", "default", "hidden"] },
+    "upstream_model_id": { "type": "string" },
+    "skills": { "elements": { "type": "string" } }
+  },
+  "additionalProperties": true,
+  "metadata": {
+    "id": "the proxy-visible model ID a harness uses in requests. Proxies serving multiple endpoints from one vendor MAY prefix IDs (go-*, zen-*) to disambiguate.",
+    "upstream_model_id": "the ID forwarded upstream when it differs from id (e.g. after prefix stripping); absent means the upstream ID equals id.",
+    "api_key_env_var": "denormalized from the owning service so a model object is self-contained; must equal the service's api_key_env_var.",
+    "preference": "operator's user preference for this model: pinned = top of list, default = the service's default pick, hidden = excluded from listing but still requestable. Reserved (forward-compatible) - consumers MUST tolerate these fields being absent.",
+    "cost_*": "informational pricing (USD per million tokens); reserved for future cost-aware routing; consumers MUST tolerate absence.",
+    "skills": "reserved for future per-model skill advertisement; consumers MUST tolerate absence.",
+    "base_instructions": "system prompt served with the model; the proxy is the source of truth for custom system prompts, not the harness."
+  }
+}

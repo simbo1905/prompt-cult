@@ -14,7 +14,16 @@
 //! - the memory-hardened API-key handling (`secrets`) and process
 //!   hardening, both descended from OpenAI's battle-tested
 //!   `responses-api-proxy` line (see `docs/hardening.md` for the lineage
-//!   audit).
+//!   audit),
+//! - the codex-compatible discovery types for `GET /v1/models`.
 //!
 //! The binding contract for every proxy built on this crate is
 //! `docs/proxy-spec.md`.
+
+pub mod config;
+pub mod discovery;
+pub mod error;
+pub mod model;
+pub mod process_hardening;
+pub mod secrets;
+pub mod service;

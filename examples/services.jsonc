@@ -6,7 +6,7 @@
 //
 // This file is documentation of the service model, NOT a loadable proxy
 // config: per-service proxy config files are <service-id>.jsonc (see
-// proxy-config.jtd.json and proxy-mistral-ai.jsonc).
+// proxy-config.jtd.json and mistral-ai.jsonc).
 {
   "services": [
     {

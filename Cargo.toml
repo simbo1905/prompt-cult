@@ -10,6 +10,3 @@ repository = "https://github.com/simbo1905/prompt-cult"
 
 [workspace.lints.rust]
 unsafe_code = "warn"
-
-[workspace.lints.clippy]
-expect_used = "deny"

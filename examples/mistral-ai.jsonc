@@ -1,5 +1,5 @@
 // Optional per-service config for the Mistral reference proxy.
-// Copy to $PC_PROXY_CONFIG_DIR/proxy-mistral-ai.jsonc (or ~/.prompt-cult/).
+// Copy to $PC_PROXY_CONFIG_DIR/mistral-ai.jsonc (or ~/.prompt-cult/).
 // Delete keys to use compiled-in defaults; a malformed file is a hard
 // startup error, never silently ignored.
 {

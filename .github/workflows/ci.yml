@@ -3,7 +3,23 @@ name: CI
 on:
   push:
     branches: [main]
+    # Documentation-only pushes cannot change compiled behaviour, so they do not
+    # need a runner. The list is deliberately narrow: 'docs/**' and the root
+    # README only. A blanket '**/*.md' would be wrong here because
+    # crates/mistral-proxy/prompt.md is pulled into the binary with
+    # include_str!("../prompt.md"), so editing it does change what ships.
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+  # Deliberately unfiltered: every pull request gets a full verification run.
   pull_request:
+
+# One run in flight per ref: a superseded push is cancelled instead of billing
+# to completion. Pull requests live on refs/pull/<n>/merge, so unrelated PRs
+# never cancel each other and 'main' never cancels a PR.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always
@@ -11,6 +27,9 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
+    # fmt/clippy/test across the workspace takes a few minutes warm. The cap
+    # exists so a hung run cannot sit on a runner for GitHub's 6 hour default.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable

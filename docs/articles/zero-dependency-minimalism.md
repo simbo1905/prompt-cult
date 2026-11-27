@@ -279,6 +279,85 @@ discipline: the source of truth is the code and the generated artifacts;
 the write-up is a map, not a substitute for reading the files. Zero
 dependencies does not mean zero evidence.
 
+## Late arrivals: state without a state machine
+
+The same trail contains the second half of the front-end argument. The
+taxing part of SPA state management was never rendering — it was the
+ceremonies grown around keeping views in sync: stores, reducers, selectors,
+hydration, context providers, and the whole menagerie of "toxic stuff" that
+exists to answer one question: *what about the events that happened before
+I was listening?*
+
+Open a tab late — or materialise a component late — and every message the
+page would have cared about has already been dispatched. BroadcastChannel,
+by specification, keeps no backlog: a post reaches only the contexts
+listening at dispatch time. Most architectures respond by bolting on a
+central store to replay state. The
+[late-arriver](https://github.com/prompt-cult/late-arriver) demo in the
+Prompt Cult org takes the other route: make the *bus itself* durable, and
+late arrival stops being a special case.
+
+The demo is deliberately humble: a **logging console**. Everything a page
+does gets published to the bus; the console is a drop-in Web Component you
+can add to any page. Open it while things are happening and it shows the
+log live; open it later — even though the developer tools were never open —
+and it catches up on everything it missed, exactly once, then follows the
+live stream. That is the whole demonstration: a Web Component that mounts
+late, finds the state that has already been spooled, and then listens on
+the event bus for what comes next. It is the smallest possible instance of
+the general claim that any component on any screen can (a) find the state
+that has already arrived and (b) subscribe to the event bus for what comes
+next, from the backend or from other pages. The console is just the
+smallest useful instance of that claim; every screen's components can be
+the same kind of citizen.
+
+The architecture is four small pieces:
+
+1. **Producers** post envelopes to a raw `BroadcastChannel`. They never
+   touch storage.
+2. **A spool worker** (a Web Worker) writes every envelope to IndexedDB in
+   a readwrite transaction, and re-broadcasts it on a second channel from
+   inside `tx.oncomplete` — persist-then-broadcast, literally, for
+   everything the UI ever sees.
+3. **A late subscriber** boots in a fixed order: subscribe first, then read
+   the IndexedDB backlog snapshot, then merge, then go live. For any entry,
+   exactly one of two things is true — it committed before the snapshot
+   (it is in the backlog) or after it (its re-broadcast arrives after the
+   subscription existed, so it is buffered). The only overlap mode is
+   both, and dedupe-by-id absorbs it. Neither case can be empty, so
+   nothing is silently dropped.
+4. **Validators on the bus.** Every envelope is shaped by an RFC 8927
+   schema and checked by the generated validator; the barrel of validators
+   lets any component subscribe to exactly the message types it declares.
+   Persisted state in IndexedDB/session storage is validated on load with
+   the same generated modules — storage is just another untrusted wire.
+
+The correctness claim is a property of the design, not of vigilance, and
+the README proves it from the IndexedDB and BroadcastChannel
+specifications: the only duplicate mode is "committed in both windows",
+and dedupe-by-id absorbs it; reversing the boot order reopens a gap, which
+is why the boot order is fixed and the readiness handshake exists. The
+measured behaviour: 23 entries emitted with no console open were caught
+23/23 by a console mounted afterwards; a subscriber booted mid-stream
+reported `1725 from backlog, 9 buffered during read` and deduped to
+exactly 1725; three subscribers mounted at three different times each held
+a gap-free, duplicate-free sequence over a 3,363-entry run.
+
+Compare that to what the framework world offers for the same problem —
+stores, reducers, selectors, hydration, context providers, and the entire
+menagerie of state-sync ceremony whose full-time job is answering "what
+about the events that happened before I was listening?". A durable bus and
+a total order over entries answer the same question with two channels, one
+worker, and one pure merge function that is unit-tested, including a
+property test over the interleavings the invariant permits.
+
+And it composes with the rest of the stack: the envelopes on the bus are
+validated by the same generated RFC 8927 validators that guard the network
+boundary, and the same validators re-check anything loaded back out of
+IndexedDB or session storage on a cold start — storage is just another
+untrusted wire. State management stops being a framework category and
+becomes three web platform primitives plus one pure function.
+
 ## The movement-shaped hole
 
 Here is what struck me when I went looking for company: the pieces exist,
@@ -394,4 +473,5 @@ building it before the trend had a name.
 - Alexander Petros, [Why htmx Does Not Have a Build Step](https://htmx.org/essays/no-build-step/).
 - Blake Crosley, [The No-Build Manifesto](https://blakecrosley.com/blog/no-build-manifesto).
 - Prompt Cult, [vanilla-pod-js skill](https://prompt-cult.github.io/prompt-cult/) and [jtd-codegen](https://github.com/prompt-cult/json-type-definition-RFC-8927).
+- Prompt Cult, [late-arriver](https://github.com/prompt-cult/late-arriver) — durable-bus demo: BroadcastChannel + IndexedDB spool worker + late subscriber, gap-free and duplicate-free.
 - simbo1905, gists: [vanilla-pod-js](https://gist.github.com/simbo1905/5be015475abd1a1611c0e996218ce4e7), [functional fetchers with vanilla JS, uv, JTD, and typed views](https://gist.github.com/simbo1905/e9ff1159497ddfaad195a224e8fb4a3d), [Tripwire API honest current pattern](https://gist.github.com/simbo1905/c5645488616d0374936659f798aeea68).
